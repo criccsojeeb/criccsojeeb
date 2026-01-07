@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Autoplay Live Stream – CriccSojeeb</title>
+<title>Low-Latency Live Stream – CriccSojeeb</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
@@ -54,14 +54,14 @@ body{
 
 <div class="wrapper">
 
-  <div class="header">Live Stream – CriccSojeeb</div>
+  <div class="header">Low-Latency Live Stream</div>
 
   <div class="player-box">
     <video id="player" playsinline muted autoplay controls preload="auto"></video>
   </div>
 
   <div class="note">
-    ⚠️ Autoplay works muted. Tap to enable sound. Quality auto-adjusts based on network.
+    ⚠️ Autoplay muted. Tap to enable sound. Quality adjusts based on network. Low-latency live.
   </div>
 
 </div>
@@ -74,50 +74,47 @@ function startPlayer(){
   if(Hls.isSupported()){
     const hls = new Hls({
       autoStartLoad: true,
-      startPosition: -1,        // Latest live segment থেকে শুরু
-      maxBufferLength: 10,      // buffer কমিয়ে fast start
-      maxMaxBufferLength: 30,
-      liveSyncDuration: 1.5,
-      capLevelToPlayerSize: true, // resolution auto adjust
-      // adaptive bitrate
+      startPosition: -1,           // latest live segment থেকে start
+      maxBufferLength: 3,          // small buffer → fast start
+      maxMaxBufferLength: 6,
+      liveSyncDuration: 0.5,       // low latency
+      liveMaxLatencyDuration: 2,   // max 2 seconds delay
+      enableWorker: true,
+      backBufferLength: 0,         // old segments remove
+      capLevelToPlayerSize: true,  // resolution auto adjust
       defaultAudioCodec: undefined
     });
 
     hls.loadSource(STREAM_URL);
     hls.attachMedia(video);
 
-    // when manifest loaded, start play
-    hls.on(Hls.Events.MANIFEST_PARSED, function(event, data){
-      // Add quality levels to Plyr
-      const availableQualities = hls.levels.map((l) => l.height).sort((a,b)=>b-a);
-      const player = new Plyr(video, {
+    hls.on(Hls.Events.MANIFEST_PARSED, function(){
+      // Quality options
+      const availableQualities = hls.levels.map(l => l.height).sort((a,b)=>b-a);
+      const player = new Plyr(video,{
         fullscreen:{enabled:true},
         settings:['quality','speed','fullscreen'],
         quality:{
           default:availableQualities[0],
           options:availableQualities,
           forced:true,
-          onChange: e => changeQuality(e)
+          onChange: e => {
+            const levelIndex = hls.levels.findIndex(l => l.height === e);
+            hls.currentLevel = levelIndex;
+          }
         }
       });
 
       // autoplay
       video.play().catch(err => console.log("Autoplay blocked:", err));
-
-      // change quality function
-      function changeQuality(newQuality){
-        const levelIndex = hls.levels.findIndex(l => l.height === newQuality);
-        hls.currentLevel = levelIndex;
-      }
     });
 
-    // adaptive quality
-    hls.on(Hls.Events.LEVEL_SWITCHED, function(event, data){
+    // log level switch for debugging
+    hls.on(Hls.Events.LEVEL_SWITCHED, function(event,data){
       console.log("Switched to level:", data.level, "Resolution:", hls.levels[data.level].height);
     });
 
   }else{
-    // fallback
     video.src = STREAM_URL;
     video.play().catch(err => console.log("Autoplay blocked:", err));
     new Plyr(video,{
@@ -127,7 +124,7 @@ function startPlayer(){
   }
 }
 
-// start the player
+// start player
 startPlayer();
 
 // tap করলে sound চালু হবে
