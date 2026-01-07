@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,11 +57,11 @@ body{
   <div class="header">Autoplay Stream Test</div>
 
   <div class="player-box">
-    <video id="player" playsinline controls muted></video>
+    <video id="player" playsinline muted autoplay controls></video>
   </div>
 
   <div class="note">
-    ⚠️ Autoplay works muted (browser policy)
+    ⚠️ Autoplay works muted (tap to enable sound)
   </div>
 
 </div>
@@ -84,12 +83,12 @@ function startPlayer(){
     hls.attachMedia(video);
 
     hls.on(Hls.Events.MANIFEST_PARSED, function(){
-      video.play().catch(()=>{});
+      video.play().catch(err => console.log("Autoplay blocked:", err));
     });
 
   }else{
     video.src = STREAM_URL;
-    video.play().catch(()=>{});
+    video.play().catch(err => console.log("Autoplay blocked:", err));
   }
 
   new Plyr(video,{
@@ -98,10 +97,10 @@ function startPlayer(){
   });
 }
 
-// autoplay
+// start player
 startPlayer();
 
-// tap করলে sound on
+// tap করলে sound চালু হবে
 video.addEventListener("click",()=>{
   video.muted = false;
 });
