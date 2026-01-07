@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>CriccSojeeb Live</title>
+<title>Autoplay Test – CriccSojeeb</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
@@ -16,165 +17,95 @@ body{
   font-family:Arial, sans-serif;
   color:#fff;
 }
+.wrapper{
+  max-width:900px;
+  margin:auto;
+  padding:12px;
+}
 .header{
   background:#0a1f44;
   padding:14px;
   text-align:center;
-  font-size:22px;
+  font-size:20px;
   font-weight:bold;
+  border-radius:12px;
 }
-.sub{font-size:13px;opacity:.8}
-.player-box{margin:10px}
-.info{
-  margin:10px;
-  background:#0a1f44;
-  padding:10px;
-  border-radius:10px;
-  font-size:14px;
+.player-box{
+  margin-top:12px;
+  width:100%;
+  aspect-ratio:16/9;
+  background:#000;
+  border-radius:12px;
+  overflow:hidden;
 }
-.counter{color:#00ffcc;font-weight:bold}
-.tg-box{
-  margin:15px;
-  padding:15px;
-  border-radius:14px;
-  background:linear-gradient(135deg,#0a1f44,#020617);
+.player-box video{
+  width:100%;
+  height:100%;
+}
+.note{
+  margin-top:10px;
+  font-size:13px;
+  opacity:.8;
   text-align:center;
-}
-.tg-box a{
-  display:block;
-  margin:10px 0;
-  padding:13px;
-  border-radius:10px;
-  background:#0088cc;
-  color:#fff;
-  font-weight:bold;
-  text-decoration:none;
 }
 </style>
 </head>
 
-<body oncontextmenu="return false">
+<body>
 
-<div class="header">
-  CriccVerse ✘ Sojeeb
-</div>
+<div class="wrapper">
 
-<div class="player-box">
-  <video id="player" controls playsinline></video>
-</div>
+  <div class="header">Autoplay Stream Test</div>
 
-<div class="tg-box">
-  <a href="https://t.me/CriccSojeeb" target="_blank">
-    🔔 Join Telegram for Live Match Links
-  </a>
+  <div class="player-box">
+    <video id="player" playsinline controls muted></video>
+  </div>
+
+  <div class="note">
+    ⚠️ Autoplay works muted (browser policy)
+  </div>
+
 </div>
 
 <script>
-// 🔐 Basic Inspect Protection
-document.onkeydown = function(e){
-  if(e.keyCode==123) return false;
-  if(e.ctrlKey && e.shiftKey && e.keyCode==73) return false;
-};
-
-// 🔔 Telegram Join Popup (Join / Skip)
-if(!localStorage.getItem("tg_skip")){
-  setTimeout(()=>{
-    if(confirm("Join CriccSojeeb Telegram Channel for live links?")){
-      window.location.href="https://t.me/CriccSojeeb";
-    }else{
-      localStorage.setItem("tg_skip","yes");
-    }
-  },1500);
-}
-
-/* ========== ADMIN PANEL (CHANNEL LIST) ========== */
-const CHANNELS = {
-  criclife: {
-    name:"CricLife",
-    url:"http://184.107.146.2/CF5A68754DABZZZZZ5d489974a2f59ea8638936abde95f3c5bdf/tracks-v1a1/mono.m3u8?token=f764fdddd3461450bf804a0a5043b12e"
-  },
-  cricbuzz: {
-    name:"Cricbuzz",
-    url:"https://allinonereborn.xyz/mix.m3u8/live4.php?id=303629"
-  },
-  willow: {
-    name:"Willow",
-    url:"https://allinonereborn.xyz/mix.m3u8/live4.php?id=13141"
-  },
-  willow2: {
-    name:"Willow 2",
-    url:"https://www.cloudflare-terms-of-service-abuse.com/stream.ts"
-  },
-  sky: {
-    name:"Sky Sports",
-    url:"https://allinonereborn.xyz/mix.m3u8/live4.php?id=10527"
-  },
-  tnt: {
-    name:"TNT Sports",
-    url:"https://allinonereborn.xyz/mix.m3u8/live4.php?id=77413"
-  },
-  fox: {
-    name:"Fox Sports",
-    url:"https://allinonereborn.xyz/mix.m3u8/live4.php?id=197185"
-  },
-  star: {
-    name:"Star Sports",
-    url:"https://allinonereborn.xyz/mix.m3u8/live4.php?id=276736"
-  },
-  sony: {
-    name:"Sony Sports",
-    url:"https://allinonereborn.xyz/mix.m3u8/live4.php?id=276737"
-  },
-  zee: {
-    name:"Zee Cinema",
-    url:"https://allinonereborn.xyz/mix.m3u8/live4.php?id=276907"
-  },
-  geo: {
-    name:"Geo Super",
-    url:"https://allinonereborn.xyz/mix.m3u8/live4.php?id=49242"
-  },
-  fancode: {
-    name:"FanCode",
-    url:"https://bd-mc-fdlive.fancode.com/mumbai/138656_english_hls_ce83ff130b39556_1ta-di_h264/index.m3u8"
-  }
-};
-
-/* ========== STREAM SELECTOR ========== */
-const params = new URLSearchParams(window.location.search);
-const ch = params.get("ch");
-
-if(!ch || !CHANNELS[ch]){
-  alert("❌ Invalid or Private Stream Link");
-  throw new Error("No stream selected");
-}
-
-const source = CHANNELS[ch].url;
+const STREAM_URL = "https://allinonereborn.xyz/mix.m3u8/live4.php?id=968928";
 const video = document.getElementById("player");
 
-// ▶️ HLS Player
-if(Hls.isSupported()){
-  const hls = new Hls({autoStartLoad:true});
-  hls.loadSource(source);
-  hls.attachMedia(video);
-}else{
-  video.src = source;
+function startPlayer(){
+  if(Hls.isSupported()){
+    const hls = new Hls({
+      autoStartLoad:true,
+      maxBufferLength:30,
+      maxMaxBufferLength:60,
+      liveSyncDuration:3
+    });
+
+    hls.loadSource(STREAM_URL);
+    hls.attachMedia(video);
+
+    hls.on(Hls.Events.MANIFEST_PARSED, function(){
+      video.play().catch(()=>{});
+    });
+
+  }else{
+    video.src = STREAM_URL;
+    video.play().catch(()=>{});
+  }
+
+  new Plyr(video,{
+    fullscreen:{enabled:true},
+    settings:['quality','speed','fullscreen']
+  });
 }
 
-// 🎛 Plyr UI
-new Plyr(video,{
-  quality:{
-    default:'auto',
-    options:['auto',1080,720,480,360],
-    forced:true
-  }
+// autoplay
+startPlayer();
+
+// tap করলে sound on
+video.addEventListener("click",()=>{
+  video.muted = false;
 });
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
