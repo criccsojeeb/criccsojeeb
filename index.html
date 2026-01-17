@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Pro M3U8 Recorder</title>
+<title>CriccSojeeb Stream M3U8tle>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -10,40 +10,32 @@ body{
   margin:0;
   background:#0b0b0b;
   color:#fff;
-  font-family:Arial,Helvetica,sans-serif;
+  font-family:Arial;
 }
 .header{
-  padding:12px;
   background:#111;
+  padding:12px;
   text-align:center;
   font-weight:bold;
-  letter-spacing:1px;
 }
 .container{
   padding:10px;
 }
-input{
+input,button{
   width:100%;
   padding:12px;
+  margin-top:6px;
   border-radius:6px;
   border:none;
-  outline:none;
-  font-size:14px;
 }
 button{
-  width:100%;
-  padding:12px;
-  margin-top:8px;
-  border:none;
-  border-radius:6px;
-  font-size:15px;
   background:#ff2d55;
   color:#fff;
-  cursor:pointer;
+  font-size:15px;
 }
 .video-box{
   position:relative;
-  margin-top:12px;
+  margin-top:10px;
 }
 video{
   width:100%;
@@ -54,18 +46,28 @@ video{
   position:absolute;
   bottom:15px;
   right:15px;
-  background:red;
-  width:55px;
-  height:55px;
+  width:60px;
+  height:60px;
   border-radius:50%;
+  background:red;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:14px;
   font-weight:bold;
+  cursor:pointer;
 }
 .recording{
   animation:pulse 1s infinite;
+}
+.timer{
+  position:absolute;
+  bottom:20px;
+  left:15px;
+  background:rgba(0,0,0,.6);
+  padding:5px 10px;
+  border-radius:4px;
+  font-size:14px;
+  display:none;
 }
 @keyframes pulse{
   0%{box-shadow:0 0 0 0 rgba(255,0,0,.7);}
@@ -77,14 +79,13 @@ video{
 
 <body>
 
-<div class="header">PRO M3U8 RECORDER</div>
-
-<div class="container">
+<div class="header">CriccSojeeb Stream Recorder<div class="container">
   <input id="url" placeholder="Paste m3u8 link here">
   <button onclick="loadStream()">▶ PLAY STREAM</button>
 
   <div class="video-box">
     <video id="video" controls playsinline></video>
+    <div class="timer" id="timer">00:00</div>
     <div class="record-btn" id="recBtn" onclick="toggleRec()">REC</div>
   </div>
 </div>
@@ -94,35 +95,50 @@ video{
 <script>
 let video = document.getElementById("video");
 let recBtn = document.getElementById("recBtn");
+let timerEl = document.getElementById("timer");
+
 let recorder, chunks=[];
 let recording=false;
+let seconds=0, timerInt;
 
 function loadStream(){
-  let m3u8 = document.getElementById("url").value;
+  let url=document.getElementById("url").value;
   if(Hls.isSupported()){
-    let hls = new Hls();
-    hls.loadSource(m3u8);
+    let hls=new Hls({maxBufferLength:30});
+    hls.loadSource(url);
     hls.attachMedia(video);
   }else{
-    video.src = m3u8;
+    video.src=url;
   }
   video.play();
 }
 
 function toggleRec(){
-  if(!recording){
-    startRec();
-  }else{
-    stopRec();
-  }
+  recording ? stopRec() : startRec();
 }
 
 function startRec(){
   chunks=[];
-  let stream = video.captureStream();
-  recorder = new MediaRecorder(stream,{mimeType:"video/webm"});
+  seconds=0;
+  timerEl.innerText="00:00";
+  timerEl.style.display="block";
+
+  let stream=video.captureStream();
+  recorder=new MediaRecorder(stream,{
+    mimeType:"video/webm;codecs=vp9",
+    videoBitsPerSecond:8000000  // BEST QUALITY
+  });
+
   recorder.ondataavailable=e=>chunks.push(e.data);
   recorder.start();
+
+  timerInt=setInterval(()=>{
+    seconds++;
+    let m=String(Math.floor(seconds/60)).padStart(2,"0");
+    let s=String(seconds%60).padStart(2,"0");
+    timerEl.innerText=`${m}:${s}`;
+  },1000);
+
   recording=true;
   recBtn.classList.add("recording");
   recBtn.innerText="STOP";
@@ -130,19 +146,10 @@ function startRec(){
 
 function stopRec(){
   recorder.stop();
+  clearInterval(timerInt);
+  timerEl.style.display="none";
+
   recorder.onstop=()=>{
     let blob=new Blob(chunks,{type:"video/webm"});
-    let url=URL.createObjectURL(blob);
-    let a=document.createElement("a");
-    a.href=url;
-    a.download="recorded_stream.webm";
-    a.click();
-  };
-  recording=false;
-  recBtn.classList.remove("recording");
-  recBtn.innerText="REC";
-}
-</script>
-
-</body>
-</html>
+    let now=new Date();
+    let name=`record_${now.getFullYear()}-${now.getMonth()+1}-${now
