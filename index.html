@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>CriccSojeeb Stream M3U8tle>
+<title>CriccSojeeb Stream Recorder</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -17,6 +17,7 @@ body{
   padding:12px;
   text-align:center;
   font-weight:bold;
+  font-size:18px;
 }
 .container{
   padding:10px;
@@ -74,12 +75,66 @@ video{
   70%{box-shadow:0 0 0 15px rgba(255,0,0,0);}
   100%{box-shadow:0 0 0 0 rgba(255,0,0,0);}
 }
+
+/* Telegram Popup */
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+.popup-box{
+  background:#111;
+  padding:20px;
+  border-radius:10px;
+  text-align:center;
+  width:85%;
+  max-width:320px;
+}
+.popup-box h3{
+  margin-top:0;
+}
+.popup-box a{
+  display:block;
+  background:#0088cc;
+  color:#fff;
+  padding:12px;
+  border-radius:6px;
+  text-decoration:none;
+  margin-top:10px;
+}
+.close{
+  margin-top:10px;
+  color:#aaa;
+  cursor:pointer;
+}
+
+/* Bottom Join Button */
+.bottom-join{
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  background:#0088cc;
+  text-align:center;
+  padding:12px;
+}
+.bottom-join a{
+  color:#fff;
+  font-weight:bold;
+  text-decoration:none;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">CriccSojeeb Stream Recorder<div class="container">
+<div class="header">CriccSojeeb Stream Recorder</div>
+
+<div class="container">
   <input id="url" placeholder="Paste m3u8 link here">
   <button onclick="loadStream()">▶ PLAY STREAM</button>
 
@@ -90,21 +145,37 @@ video{
   </div>
 </div>
 
+<!-- Telegram Popup -->
+<div class="popup" id="popup">
+  <div class="popup-box">
+    <h3>Join Our Telegram</h3>
+    <p>Live streams & updates only on Telegram</p>
+    <a href="https://t.me/CriccSojeeb" target="_blank">Join Telegram</a>
+    <div class="close" onclick="closePopup()">Close</div>
+  </div>
+</div>
+
+<!-- Bottom Join -->
+<div class="bottom-join">
+  <a href="https://t.me/CriccSojeeb" target="_blank">📢 Join Our Telegram Channel</a>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <script>
-let video = document.getElementById("video");
-let recBtn = document.getElementById("recBtn");
-let timerEl = document.getElementById("timer");
+let video=document.getElementById("video");
+let recBtn=document.getElementById("recBtn");
+let timerEl=document.getElementById("timer");
+let popup=document.getElementById("popup");
 
-let recorder, chunks=[];
+let recorder,chunks=[];
 let recording=false;
-let seconds=0, timerInt;
+let sec=0,timerInt;
 
 function loadStream(){
   let url=document.getElementById("url").value;
   if(Hls.isSupported()){
-    let hls=new Hls({maxBufferLength:30});
+    let hls=new Hls();
     hls.loadSource(url);
     hls.attachMedia(video);
   }else{
@@ -114,34 +185,31 @@ function loadStream(){
 }
 
 function toggleRec(){
-  recording ? stopRec() : startRec();
+  recording?stopRec():startRec();
 }
 
 function startRec(){
   chunks=[];
-  seconds=0;
-  timerEl.innerText="00:00";
+  sec=0;
   timerEl.style.display="block";
-
   let stream=video.captureStream();
   recorder=new MediaRecorder(stream,{
     mimeType:"video/webm;codecs=vp9",
-    videoBitsPerSecond:8000000  // BEST QUALITY
+    videoBitsPerSecond:8000000
   });
-
   recorder.ondataavailable=e=>chunks.push(e.data);
   recorder.start();
 
   timerInt=setInterval(()=>{
-    seconds++;
-    let m=String(Math.floor(seconds/60)).padStart(2,"0");
-    let s=String(seconds%60).padStart(2,"0");
+    sec++;
+    let m=String(Math.floor(sec/60)).padStart(2,"0");
+    let s=String(sec%60).padStart(2,"0");
     timerEl.innerText=`${m}:${s}`;
   },1000);
 
   recording=true;
-  recBtn.classList.add("recording");
   recBtn.innerText="STOP";
+  recBtn.classList.add("recording");
 }
 
 function stopRec(){
@@ -151,5 +219,23 @@ function stopRec(){
 
   recorder.onstop=()=>{
     let blob=new Blob(chunks,{type:"video/webm"});
-    let now=new Date();
-    let name=`record_${now.getFullYear()}-${now.getMonth()+1}-${now
+    let d=new Date();
+    let name=`CriccSojeeb_${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}_${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}.webm`;
+    let a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=name;
+    a.click();
+  };
+
+  recording=false;
+  recBtn.innerText="REC";
+  recBtn.classList.remove("recording");
+}
+
+function closePopup(){
+  popup.style.display="none";
+}
+</script>
+
+</body>
+</html>
