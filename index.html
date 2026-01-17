@@ -34,6 +34,8 @@ button{
   color:#fff;
   font-size:15px;
 }
+
+/* VIDEO */
 .video-box{
   position:relative;
   margin-top:10px;
@@ -43,6 +45,30 @@ video{
   background:#000;
   border-radius:8px;
 }
+
+/* 🔥 WATERMARK */
+.watermark{
+  position:absolute;
+  top:10px;
+  right:12px;
+  font-size:14px;
+  font-weight:bold;
+  letter-spacing:1px;
+  color:rgba(255,255,255,0.85);
+  background:rgba(0,0,0,0.45);
+  padding:5px 10px;
+  border-radius:4px;
+  z-index:6;
+  animation:wmFade 3s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes wmFade{
+  0%{opacity:0.4; box-shadow:0 0 0 rgba(255,255,255,0);}
+  50%{opacity:1; box-shadow:0 0 12px rgba(255,255,255,0.4);}
+  100%{opacity:0.4; box-shadow:0 0 0 rgba(255,255,255,0);}
+}
+
+/* RECORD BUTTON */
 .record-btn{
   position:absolute;
   bottom:15px;
@@ -56,10 +82,18 @@ video{
   justify-content:center;
   font-weight:bold;
   cursor:pointer;
+  z-index:5;
 }
 .recording{
   animation:pulse 1s infinite;
 }
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(255,0,0,.7);}
+  70%{box-shadow:0 0 0 15px rgba(255,0,0,0);}
+  100%{box-shadow:0 0 0 0 rgba(255,0,0,0);}
+}
+
+/* TIMER */
 .timer{
   position:absolute;
   bottom:20px;
@@ -69,14 +103,10 @@ video{
   border-radius:4px;
   font-size:14px;
   display:none;
-}
-@keyframes pulse{
-  0%{box-shadow:0 0 0 0 rgba(255,0,0,.7);}
-  70%{box-shadow:0 0 0 15px rgba(255,0,0,0);}
-  100%{box-shadow:0 0 0 0 rgba(255,0,0,0);}
+  z-index:5;
 }
 
-/* Telegram Popup */
+/* TELEGRAM POPUP */
 .popup{
   position:fixed;
   inset:0;
@@ -94,9 +124,6 @@ video{
   width:85%;
   max-width:320px;
 }
-.popup-box h3{
-  margin-top:0;
-}
 .popup-box a{
   display:block;
   background:#0088cc;
@@ -112,7 +139,7 @@ video{
   cursor:pointer;
 }
 
-/* Bottom Join Button */
+/* BOTTOM JOIN */
 .bottom-join{
   position:fixed;
   bottom:0;
@@ -139,13 +166,16 @@ video{
   <button onclick="loadStream()">▶ PLAY STREAM</button>
 
   <div class="video-box">
+    <div class="watermark">CriccSojeeb</div>
+
     <video id="video" controls playsinline></video>
+
     <div class="timer" id="timer">00:00</div>
     <div class="record-btn" id="recBtn" onclick="toggleRec()">REC</div>
   </div>
 </div>
 
-<!-- Telegram Popup -->
+<!-- TELEGRAM POPUP -->
 <div class="popup" id="popup">
   <div class="popup-box">
     <h3>Join Our Telegram</h3>
@@ -155,7 +185,7 @@ video{
   </div>
 </div>
 
-<!-- Bottom Join -->
+<!-- BOTTOM JOIN -->
 <div class="bottom-join">
   <a href="https://t.me/CriccSojeeb" target="_blank">📢 Join Our Telegram Channel</a>
 </div>
