@@ -2,135 +2,146 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Low-Latency Live Stream – CriccSojeeb</title>
+<title>Pro M3U8 Recorder</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css">
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.js"></script>
 
 <style>
 body{
   margin:0;
-  background:#050b18;
-  font-family:Arial, sans-serif;
+  background:#0b0b0b;
   color:#fff;
-}
-.wrapper{
-  max-width:900px;
-  margin:auto;
-  padding:12px;
+  font-family:Arial,Helvetica,sans-serif;
 }
 .header{
-  background:#0a1f44;
-  padding:14px;
+  padding:12px;
+  background:#111;
   text-align:center;
-  font-size:20px;
   font-weight:bold;
-  border-radius:12px;
+  letter-spacing:1px;
 }
-.player-box{
+.container{
+  padding:10px;
+}
+input{
+  width:100%;
+  padding:12px;
+  border-radius:6px;
+  border:none;
+  outline:none;
+  font-size:14px;
+}
+button{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border:none;
+  border-radius:6px;
+  font-size:15px;
+  background:#ff2d55;
+  color:#fff;
+  cursor:pointer;
+}
+.video-box{
+  position:relative;
   margin-top:12px;
+}
+video{
   width:100%;
-  aspect-ratio:16/9;
   background:#000;
-  border-radius:12px;
-  overflow:hidden;
+  border-radius:8px;
 }
-.player-box video{
-  width:100%;
-  height:100%;
+.record-btn{
+  position:absolute;
+  bottom:15px;
+  right:15px;
+  background:red;
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  font-weight:bold;
 }
-.note{
-  margin-top:10px;
-  font-size:13px;
-  opacity:.8;
-  text-align:center;
+.recording{
+  animation:pulse 1s infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(255,0,0,.7);}
+  70%{box-shadow:0 0 0 15px rgba(255,0,0,0);}
+  100%{box-shadow:0 0 0 0 rgba(255,0,0,0);}
 }
 </style>
 </head>
 
 <body>
 
-<div class="wrapper">
+<div class="header">PRO M3U8 RECORDER</div>
 
-  <div class="header">Low-Latency Live Stream</div>
+<div class="container">
+  <input id="url" placeholder="Paste m3u8 link here">
+  <button onclick="loadStream()">▶ PLAY STREAM</button>
 
-  <div class="player-box">
-    <video id="player" playsinline muted autoplay controls preload="auto"></video>
+  <div class="video-box">
+    <video id="video" controls playsinline></video>
+    <div class="record-btn" id="recBtn" onclick="toggleRec()">REC</div>
   </div>
-
-  <div class="note">
-    ⚠️ Autoplay muted. Tap to enable sound. Quality adjusts based on network. Low-latency live.
-  </div>
-
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
 <script>
-const STREAM_URL = "https://allinonereborn.xyz/mix.m3u8/live4.php?id=968928";
-const video = document.getElementById("player");
+let video = document.getElementById("video");
+let recBtn = document.getElementById("recBtn");
+let recorder, chunks=[];
+let recording=false;
 
-function startPlayer(){
+function loadStream(){
+  let m3u8 = document.getElementById("url").value;
   if(Hls.isSupported()){
-    const hls = new Hls({
-      autoStartLoad: true,
-      startPosition: -1,           // latest live segment থেকে start
-      maxBufferLength: 3,          // small buffer → fast start
-      maxMaxBufferLength: 6,
-      liveSyncDuration: 0.5,       // low latency
-      liveMaxLatencyDuration: 2,   // max 2 seconds delay
-      enableWorker: true,
-      backBufferLength: 0,         // old segments remove
-      capLevelToPlayerSize: true,  // resolution auto adjust
-      defaultAudioCodec: undefined
-    });
-
-    hls.loadSource(STREAM_URL);
+    let hls = new Hls();
+    hls.loadSource(m3u8);
     hls.attachMedia(video);
-
-    hls.on(Hls.Events.MANIFEST_PARSED, function(){
-      // Quality options
-      const availableQualities = hls.levels.map(l => l.height).sort((a,b)=>b-a);
-      const player = new Plyr(video,{
-        fullscreen:{enabled:true},
-        settings:['quality','speed','fullscreen'],
-        quality:{
-          default:availableQualities[0],
-          options:availableQualities,
-          forced:true,
-          onChange: e => {
-            const levelIndex = hls.levels.findIndex(l => l.height === e);
-            hls.currentLevel = levelIndex;
-          }
-        }
-      });
-
-      // autoplay
-      video.play().catch(err => console.log("Autoplay blocked:", err));
-    });
-
-    // log level switch for debugging
-    hls.on(Hls.Events.LEVEL_SWITCHED, function(event,data){
-      console.log("Switched to level:", data.level, "Resolution:", hls.levels[data.level].height);
-    });
-
   }else{
-    video.src = STREAM_URL;
-    video.play().catch(err => console.log("Autoplay blocked:", err));
-    new Plyr(video,{
-      fullscreen:{enabled:true},
-      settings:['quality','speed','fullscreen']
-    });
+    video.src = m3u8;
+  }
+  video.play();
+}
+
+function toggleRec(){
+  if(!recording){
+    startRec();
+  }else{
+    stopRec();
   }
 }
 
-// start player
-startPlayer();
+function startRec(){
+  chunks=[];
+  let stream = video.captureStream();
+  recorder = new MediaRecorder(stream,{mimeType:"video/webm"});
+  recorder.ondataavailable=e=>chunks.push(e.data);
+  recorder.start();
+  recording=true;
+  recBtn.classList.add("recording");
+  recBtn.innerText="STOP";
+}
 
-// tap করলে sound চালু হবে
-video.addEventListener("click", ()=>{
-  video.muted = false;
-});
+function stopRec(){
+  recorder.stop();
+  recorder.onstop=()=>{
+    let blob=new Blob(chunks,{type:"video/webm"});
+    let url=URL.createObjectURL(blob);
+    let a=document.createElement("a");
+    a.href=url;
+    a.download="recorded_stream.webm";
+    a.click();
+  };
+  recording=false;
+  recBtn.classList.remove("recording");
+  recBtn.innerText="REC";
+}
 </script>
 
 </body>
